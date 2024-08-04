@@ -1,4 +1,4 @@
-open! Base
+
 
 let bench_sexp_of_t ~sexp_of_t t =
   let t = Sys.opaque_identity t in

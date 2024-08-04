@@ -1,5 +1,3 @@
-open! Base
-
 module Abstract : sig
   type t [@@deriving_inline sexp]
 

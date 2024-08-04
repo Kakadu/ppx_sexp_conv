@@ -1,5 +1,8 @@
-open! Base
 open! Ppxlib
+
+module String_set: sig
+  include module type of Set.Make(String)
+end
 
 (** Sexp conversion function, expressed as either a single expression or as a collection
     of [match] cases. Expressing as cases rather than wrapping directly in [pexp_function]
@@ -23,7 +26,7 @@ val to_value_expression
   :  t
   -> loc:location
   -> rec_flag:rec_flag
-  -> values_being_defined:Set.M(String).t
+  -> values_being_defined:String_set.t
   -> expression
 
 (** Apply [t] to an argument. *)

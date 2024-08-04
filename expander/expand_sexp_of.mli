@@ -1,4 +1,3 @@
-open! Base
 open! Ppxlib
 
 module Sig_generate_sexp_of : sig

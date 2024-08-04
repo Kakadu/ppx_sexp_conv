@@ -1,4 +1,3 @@
-open! Base
 open! Ppxlib
 
 (** Constructs a branch of a [match] or [function] expression with no guard. *)

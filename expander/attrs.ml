@@ -1,4 +1,3 @@
-open! Base
 open! Ppxlib
 
 module To_lift = struct
@@ -167,7 +166,7 @@ let tag_attribute_for_context context =
   let esequence ast_pattern =
     Ast_pattern.of_func (fun context _loc expression k ->
       collect_sequence expression
-      |> List.map ~f:(get_captured_values ast_pattern context)
+      |> ListLabels.map ~f:(get_captured_values ast_pattern context)
       |> k)
   in
   Attribute.declare
@@ -216,7 +215,7 @@ let fail_if_allow_extra_field_td ~loc x =
   then (
     match x.ptype_kind with
     | Ptype_variant cds
-      when List.exists cds ~f:(fun cd ->
+      when cds |> List.exists (fun cd ->
         match cd.pcd_args with
         | Pcstr_record _ -> true
         | _ -> false) ->

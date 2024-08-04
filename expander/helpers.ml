@@ -1,4 +1,3 @@
-open! Base
 open! Ppxlib
 open Ast_builder.Default
 
@@ -23,9 +22,9 @@ let replace_variables_by_underscores =
 let make_rigid_types tps =
   List.fold
     tps
-    ~init:(Map.empty (module String))
+    ~init:(Base.Map.empty (module Base.String))
     ~f:(fun map tp ->
-      Map.update map tp.txt ~f:(function
+      Base.Map.update map tp.txt ~f:(function
         | None -> Fresh_name.of_string_loc tp
         | Some fresh ->
           (* Ignore duplicate names, the typechecker will raise after expansion. *)
@@ -33,7 +32,7 @@ let make_rigid_types tps =
 ;;
 
 let find_rigid_type ~loc ~rigid_types name =
-  match Map.find rigid_types name with
+  match Base.Map.find rigid_types name with
   | Some tp -> Fresh_name.to_string_loc tp
   | None ->
     (* Ignore unbound type names, the typechecker will raise after expansion. *)
@@ -73,7 +72,7 @@ let tvars_of_core_type : core_type -> string list =
 
       method! core_type x acc =
         match x.ptyp_desc with
-        | Ptyp_var x -> if List.mem acc x ~equal:String.equal then acc else x :: acc
+        | Ptyp_var x -> if Base.List.mem acc x ~equal:String.equal then acc else x :: acc
         | _ -> super#core_type x acc
     end
   in
@@ -100,7 +99,7 @@ let constrained_function_binding
     if not has_vars
     then pat
     else (
-      let vars = List.map ~f:(fun txt -> { txt; loc }) vars in
+      let vars = List.map (fun txt -> { txt; loc }) vars in
       ppat_constraint ~loc pat (ptyp_poly ~loc vars typ))
   in
   let body =
@@ -112,7 +111,7 @@ let constrained_function_binding
     if use_rigid_variables
     then (
       let rigid_types = make_rigid_types tps in
-      List.fold_right
+      Base.List.fold_right
         tps
         ~f:(fun tp body ->
           pexp_newtype ~loc (find_rigid_type ~loc:tp.loc ~rigid_types tp.txt) body)
@@ -126,11 +125,11 @@ let constrained_function_binding
 
 let with_let ~loc ~binds body =
   List.fold_right binds ~init:body ~f:(fun bind body ->
-    if List.is_empty bind then body else pexp_let ~loc Nonrecursive bind body)
+    if Base.List.is_empty bind then body else pexp_let ~loc Nonrecursive bind body)
 ;;
 
 let with_types ~loc ~types body =
-  if List.is_empty types
+  if Base.List.is_empty types
   then body
   else
     pexp_open
@@ -141,7 +140,7 @@ let with_types ~loc ~types body =
          ~expr:
            (pmod_structure
               ~loc
-              (List.map types ~f:(fun type_decl -> pstr_type ~loc Recursive [ type_decl ]))))
+              (ListLabels.map types ~f:(fun type_decl -> pstr_type ~loc Recursive [ type_decl ]))))
       body
 ;;
 

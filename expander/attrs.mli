@@ -1,4 +1,3 @@
-open! Base
 open! Ppxlib
 
 (** [default], [drop_default], and [drop_if] attributes are annotated with expressions

@@ -1,7 +1,8 @@
-open! Base
 open! Ppxlib
 open Ast_builder.Default
 open Helpers
+
+module String_set = Set.Make(String)
 
 module Reference = struct
   type t =
@@ -36,7 +37,7 @@ module Reference = struct
     let may_refer_directly_to ident =
       match rec_flag with
       | Nonrecursive -> true
-      | Recursive -> not (Set.mem values_being_defined (Longident.name ident.txt))
+      | Recursive -> not (String_set.mem  (Longident.name ident.txt) values_being_defined)
     in
     match t with
     | { types = []; binds = []; ident; args = [] } when may_refer_directly_to ident ->
@@ -165,20 +166,24 @@ module Apply_all = struct
 end
 
 let gen_symbols list ~prefix =
-  List.mapi list ~f:(fun i _ -> gen_symbol ~prefix:(prefix ^ Int.to_string i) ())
+  List.mapi (fun i _ -> gen_symbol ~prefix:(prefix ^ Int.to_string i) ()) list
 ;;
+
+let rec list_map3_exn xs ys zs ~f = match (xs,ys,zs) with
+  | x::xs, y::ys, z::zs -> f x y z :: list_map3_exn xs ys zs ~f
+  | [],_,_ | _,[],_ | _,_,[] -> failwith "bad arguments list_map3_exn"
 
 let apply_all ts ~loc =
   let arguments_names = gen_symbols ts ~prefix:"arg" in
   let converted_names = gen_symbols ts ~prefix:"res" in
   let bindings =
-    List.map3_exn ts arguments_names converted_names ~f:(fun t arg conv ->
+    list_map3_exn ts arguments_names converted_names ~f:(fun t arg conv ->
       let expr = apply ~loc t (evar ~loc arg) in
       value_binding ~loc ~pat:(pvar ~loc conv) ~expr)
   in
   ({ bindings
-   ; arguments = List.map arguments_names ~f:(pvar ~loc)
-   ; converted = List.map converted_names ~f:(evar ~loc)
+   ; arguments = ListLabels.map arguments_names ~f:(pvar ~loc)
+   ; converted = ListLabels.map converted_names ~f:(evar ~loc)
    }
    : Apply_all.t)
 ;;

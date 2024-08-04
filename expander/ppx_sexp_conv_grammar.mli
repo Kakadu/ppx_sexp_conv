@@ -1,4 +1,3 @@
-open! Base
 open! Ppxlib
 
 val type_extension : ctxt:Expansion_context.Extension.t -> core_type -> core_type
